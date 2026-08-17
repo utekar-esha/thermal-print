@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Thermal Printer Test</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .receipt {
+            width: 300px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            text-align: left;
+            font-family: monospace;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #status {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="receipt">
+
+    <h2 style="text-align:center;">
+        TEST RECEIPT
+    </h2>
+
+    <hr>
+
+    <div>
+        Receipt No:
+        <span id="receipt"></span>
+    </div>
+
+    <div>
+        Product:
+        <span id="product"></span>
+    </div>
+
+    <div>
+        Quantity:
+        <span id="qty"></span>
+    </div>
+
+    <div>
+        Amount:
+        ₹<span id="amount"></span>
+    </div>
+
+    <hr>
+
+    <h3>
+        TOTAL: ₹<span id="total"></span>
+    </h3>
+
+    <hr>
+
+    <div style="text-align:center;">
+        THANK YOU!
+    </div>
+
+</div>
+
+<button onclick="printReceipt()">
+    🖨 PRINT RECEIPT
+</button>
+
+<div id="status"></div>
+
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+
+const receipt =
+    params.get("receipt") || "TEST001";
+
+const product =
+    params.get("product") || "Test Product";
+
+const qty =
+    params.get("qty") || "1";
+
+const amount =
+    params.get("amount") || "100";
+
+const total =
+    params.get("total") || "100";
+
+
+document.getElementById("receipt").textContent = receipt;
+document.getElementById("product").textContent = product;
+document.getElementById("qty").textContent = qty;
+document.getElementById("amount").textContent = amount;
+document.getElementById("total").textContent = total;
+
+
+async function printReceipt() {
+
+    const status =
+        document.getElementById("status");
+
+    status.textContent =
+        "Sending to printer...";
+
+    try {
+
+        const receiptData = {
+
+            content: [
+
+                {
+                    type: "text",
+                    text: "TEST RECEIPT",
+                    align: "center",
+                    bold: true
+                },
+
+                {
+                    type: "divider"
+                },
+
+                {
+                    type: "text",
+                    text: "Receipt No: " + receipt
+                },
+
+                {
+                    type: "text",
+                    text: "Product: " + product
+                },
+
+                {
+                    type: "text",
+                    text: "Qty: " + qty
+                },
+
+                {
+                    type: "text",
+                    text: "Amount: Rs." + amount
+                },
+
+                {
+                    type: "divider"
+                },
+
+                {
+                    type: "text",
+                    text: "TOTAL: Rs." + total,
+                    bold: true
+                },
+
+                {
+                    type: "divider"
+                },
+
+                {
+                    type: "text",
+                    text: "THANK YOU!",
+                    align: "center"
+                },
+
+                {
+                    type: "feed",
+                    lines: 3
+                }
+
+            ]
+
+        };
+
+
+        const response = await fetch(
+            "http://localhost:9100/print",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify(receiptData)
+            }
+        );
+
+
+        if (!response.ok) {
+            throw new Error(
+                "Printer returned an error"
+            );
+        }
+
+
+        status.textContent =
+            "✅ Receipt sent to printer!";
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            "❌ Printing failed: " +
+            error.message;
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
